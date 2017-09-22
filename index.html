@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/jquery.min.js"></script>
+  <script src="ckeditor/ckeditor.js"></script>
+  <title>J E editor</title>
+</head>
+<body>
+  <h1>JE editor</h1>
+  <textarea id="je_editor"><p>
+      Newton&#39;s&nbsp;Principia&nbsp;for
+      <lang_jp>
+          mulated the&nbsp;laws of motion&nbsp;and&nbsp;u
+          <no_lang>niversal gravita</no_lang>
+          tion&nbsp;that dominated scientists&#39; view of the physical universe for the next three centuries. By deriving&nbsp;Kepler&#39;s laws of planetary motion&nbsp;from his mathematical description of&nbsp;gravity, and usi
+      </lang_jp>
+      <lang_en>
+          ng the same principles t
+          <lang_jp>o account for the&nbsp;trajectories&nbsp;of&nbsp;c</lang_jp>
+          omets, the&nbsp;tides, the&nbsp;precession of the equinoxes, and other phenomena, Newton removed the last doubts about the validity of the&nbsp;heliocentric&nbsp;model of the&nbsp;Solar System&nbsp;and demonstrated that
+          <no_lang> the&nbsp;motion of obje</no_lang>
+          cts&nbsp;on&nbsp;Earth&nbsp;and of&nbsp;celestial&nbsp;bodies could be accounted for by the same principles. Newton&#39;s theoretical prediction that the Earth is s
+      </lang_en>
+      hape
+      <no_lang>d as an&nbsp;oblate spheroid</no_lang>
+      &nbsp;was later vindicated by the geodetic measurements of&nbsp;Maupertuis,&nbsp;La Condamine, and others, thus co
+      <lang_jp>
+          nvincing most&nbsp;Continent
+          <lang_en>al European&nbsp;s</lang_en>
+          cien
+          <no_lang>tists of</no_lang>
+          the superi
+          <no_lang>orit</no_lang>
+          y of&nbsp;N
+          <lang_jp>ewtonian</lang_jp>
+          mechanics&nbsp;over the earlier system of&nbsp;Descartes.
+      </lang_jp>
+    </p></textarea>
+  <div id="je_editor_hidden" style="display:none;"></div>
+  <button onclick="adapt()">Chuyển đổi</button>
+  <div id="je_editor_display"></div>
+  <script type="text/javascript">
+    var je_editor = CKEDITOR.replace('je_editor');
+    var schedule = []
+    var el_remove = ["<p>", "</p>", "<b>", "</b>", "<strong>", "</strong>",
+          "<s>", "</s>", "<i>", "</i>", "<e>", "</e>", "<h1>", "</h1>",
+          "<h2>", "</h2>", "<h3>", "</h3>", "<h4>", "</h4>", "<h5>", "</h5>",
+          "<h6>", "</h6>", "<div>", "</div>", "<span>", "</span>", "<pre>", "</pre>",
+          "<a>", "</a>", "<abbr>", "</abbr>", "<audio>", "</audio>", "<br>", "<br/>", "<br />",
+          "<table>", "</table>", "<tr>", "</tr>", "<td>", "</td>", "<th>", "</th>",
+          "<hr>", "<ul>", "</ul>", "<li>", "</li>", "<ol>", "</ol>", "<q>", "</q>",
+          "<select>", "</select>", "<option>", "</option>", "<sub>", "</sub>", "<sup>", "</sup>",
+          "<ins>", "</ins>", 
+        ]
+
+    function adapt(){
+      var data = je_editor.getData();
+      $("#je_editor_hidden").html(data)
+      var d = $("#je_editor_hidden").html()
+      var d_length = d.length
+      var d_s = d.toString()
+      el_remove.forEach(function(element) {
+        d_s = d_s.replaceAll(element, "")
+      })
+      d_s = d_s.replaceAll("&nbsp;", " ")
+      alert(d_s)
+      var arr = {
+        lang_jp: {start: d_s.indexOf("<lang_jp>"), end:  d_s.indexOf("</lang_jp>")},
+        lang_en: {start: d_s.indexOf("<lang_en>"), end: d_s.indexOf("</lang_en>")},
+        no_lang: {start: d_s.indexOf("<no_lang>"), end: d_s.indexOf("</no_lang>")},
+      }
+
+      var node_start = getIndexOfMin(d_s, arr.lang_jp.start, arr.lang_en.start, arr.no_lang.start)
+      console.log(node_start)
+
+      $("#je_editor_display").html(d_s.substring(node_start.indexof_start, node_start.indexof_end))
+    }
+ </script>
+
+ <script>
+  String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.split(search).join(replacement);
+  }
+
+  function getIndexOfMin(d_s, jp, en, no){
+    var data = { indexof_start: -1, indexof_end: -1, el: ""}
+    var arr = {
+      lang_jp: jp,
+      lang_en: en,
+      no_lang: no
+    }
+    var sortable = []
+    for (var v in arr)
+      sortable.push([v, arr[v]])
+    sortable.sort(function(a, b) {
+        return a[1] - b[1];
+    })
+    // console.log(sortable)
+    for(var i=0; i< sortable.length; i++){
+      if(sortable[i][1] != -1){
+        data.indexof_start = sortable[i][1];
+        data.el = sortable[i][0];
+        break;
+      }
+    }
+    data.indexof_end = d_s.indexOf("</" + data.el + ">")
+    return data
+  }
+ </script>
+</body>
+</html>
+
+
+
+
+<!--
+
+<p>
+  Newton&#39;s&nbsp;Principia&nbsp;for
+  <lang_jp>
+      mulated the&nbsp;laws of motion&nbsp;and&nbsp;u
+      <no_lang>niversal gravita</no_lang>
+      tion&nbsp;that dominated scientists&#39; view of the physical universe for the next three centuries. By deriving&nbsp;Kepler&#39;s laws of planetary motion&nbsp;from his mathematical description of&nbsp;gravity, and usi
+  </lang_jp>
+  <lang_en>
+      ng the same principles t
+      <lang_jp>o account for the&nbsp;trajectories&nbsp;of&nbsp;c</lang_jp>
+      omets, the&nbsp;tides, the&nbsp;precession of the equinoxes, and other phenomena, Newton removed the last doubts about the validity of the&nbsp;heliocentric&nbsp;model of the&nbsp;Solar System&nbsp;and demonstrated that
+      <no_lang> the&nbsp;motion of obje</no_lang>
+      cts&nbsp;on&nbsp;Earth&nbsp;and of&nbsp;celestial&nbsp;bodies could be accounted for by the same principles. Newton&#39;s theoretical prediction that the Earth is s
+  </lang_en>
+  hape
+  <no_lang>d as an&nbsp;oblate spheroid</no_lang>
+  &nbsp;was later vindicated by the geodetic measurements of&nbsp;Maupertuis,&nbsp;La Condamine, and others, thus co
+  <lang_jp>
+      nvincing most&nbsp;Continent
+      <lang_en>al European&nbsp;s</lang_en>
+      cien
+      <no_lang>tists of</no_lang>
+      the superi
+      <no_lang>orit</no_lang>
+      y of&nbsp;N
+      <lang_jp>ewtonian</lang_jp>
+      mechanics&nbsp;over the earlier system of&nbsp;Descartes.
+  </lang_jp>
+</p>
+
+-->

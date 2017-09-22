@@ -1,0 +1,22 @@
+ul {
+  padding: 10px;
+}
+ul li {
+  list-style: none;
+  padding-left: 0;
+}
+ul li a {
+  color: #000;
+  text-decoration: none;
+  padding: 5px;
+  line-height: 30px;
+}
+ul li:nth-child(1) {
+  background: #e74c3c;
+}
+ul li:nth-child(2) {
+  background: #1abc9c;
+}
+ul li:nth-child(3) {
+  background: #9b59b6;
+}
