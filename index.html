@@ -8,43 +8,57 @@
   <script src="js/jquery.min.js"></script>
   <script src="ckeditor/ckeditor.js"></script>
   <title>J E editor</title>
+  <style>
+    #renderHTML {
+      width: 90%;
+      margin: 0 auto;
+    }
+    #renderHTML .lang-item {
+      margin-top: 2px;
+    }
+    #renderHTML .lang-item-jp {
+      background: #e74c3c;
+    }
+    #renderHTML .lang-item-en {
+      background: #1abc9c;
+    }
+    #renderHTML .lang-item-no {
+      background:#9b59b6;
+    }
+    .lang-tag-box {
+      padding: 5px 10px;
+      background: #2ecc71;
+    }
+  </style>
 </head>
 <body>
   <h1>JE editor</h1>
-  <textarea id="je_editor"><p>
-      Newton&#39;s&nbsp;Principia&nbsp;for
-      <lang_jp>
-          mulated the&nbsp;laws of motion&nbsp;and&nbsp;u
-          <no_lang>niversal gravita</no_lang>
-          tion&nbsp;that dominated scientists&#39; view of the physical universe for the next three centuries. By deriving&nbsp;Kepler&#39;s laws of planetary motion&nbsp;from his mathematical description of&nbsp;gravity, and usi
-      </lang_jp>
-      <lang_en>
-          ng the same principles t
-          <lang_jp>o account for the&nbsp;trajectories&nbsp;of&nbsp;c</lang_jp>
-          omets, the&nbsp;tides, the&nbsp;precession of the equinoxes, and other phenomena, Newton removed the last doubts about the validity of the&nbsp;heliocentric&nbsp;model of the&nbsp;Solar System&nbsp;and demonstrated that
-          <no_lang> the&nbsp;motion of obje</no_lang>
-          cts&nbsp;on&nbsp;Earth&nbsp;and of&nbsp;celestial&nbsp;bodies could be accounted for by the same principles. Newton&#39;s theoretical prediction that the Earth is s
-      </lang_en>
-      hape
-      <no_lang>d as an&nbsp;oblate spheroid</no_lang>
-      &nbsp;was later vindicated by the geodetic measurements of&nbsp;Maupertuis,&nbsp;La Condamine, and others, thus co
-      <lang_jp>
-          nvincing most&nbsp;Continent
-          <lang_en>al European&nbsp;s</lang_en>
-          cien
-          <no_lang>tists of</no_lang>
-          the superi
-          <no_lang>orit</no_lang>
-          y of&nbsp;N
-          <lang_jp>ewtonian</lang_jp>
-          mechanics&nbsp;over the earlier system of&nbsp;Descartes.
-      </lang_jp>
-    </p></textarea>
+  <textarea id="je_editor"><pre>
+音声は日本語＋<lang_jp>英語が混ざったものがほとんどになりますので</lang_jp>、<lang_en>good morning</lang_en><no_lang>プログラムを使い</no_lang>、how are you today <lang_jp>裏<no_lang>で</no_lang>音声を判別する作業が必要に</lang_jp> <lang_en>good luck mate </lang_en>なってくるかと思います。</pre>
+
+<p><lang_jp> </lang_jp></p></textarea>
   <div id="je_editor_hidden" style="display:none;"></div>
-  <button onclick="adapt()">Chuyển đổi</button>
+  <!--<button onclick="adapt()">Chuyển đổi</button>-->
+  <button onclick="handle()">Xử lý</button>
   <div id="je_editor_display"></div>
+  <div id="renderHTML"></div>
+  <div id="convert_text" style="display: none;"></div>
   <script type="text/javascript">
     var je_editor = CKEDITOR.replace('je_editor');
+    // var special = {
+    //   jp_start: "❥",
+    //   jp_end: "❤",
+    //   en_start: "♛",
+    //   en_end: "♚",
+    //   no_start: "♘",
+    //   no_end: "♞"
+    // }
+    var special = ["①", "②", "③", "④", "⑤", "⑥"]
+    var s_lang = ["jp", "jp", "en", "en", "no", "no"]
+    var lang_close_symbol = ["②", "④", "⑥"]
+    var lang_close_text = ["jp", "en", "no"]
+    var lang_default = s_lang[0]
+
     var schedule = []
     var el_remove = ["<p>", "</p>", "<b>", "</b>", "<strong>", "</strong>",
           "<s>", "</s>", "<i>", "</i>", "<e>", "</e>", "<h1>", "</h1>",
@@ -79,6 +93,93 @@
 
       $("#je_editor_display").html(d_s.substring(node_start.indexof_start, node_start.indexof_end))
     }
+
+
+    var lang = [lang_default]
+    var arrs = []
+    function handle(){
+      arrs = []
+      var data = je_editor.getData();
+      $("#je_editor_hidden").html(data)
+      var d_s = $("#je_editor_hidden").html().toString()
+      d_s = d_s.replaceAll("<lang_jp>", special[0])
+      d_s = d_s.replaceAll("</lang_jp>", special[1])
+      d_s = d_s.replaceAll("<lang_en>", special[2])
+      d_s = d_s.replaceAll("</lang_en>", special[3])
+      d_s = d_s.replaceAll("<no_lang>", special[4])
+      d_s = d_s.replaceAll("</no_lang>", special[5])
+      $("#je_editor_hidden").html(d_s)
+      d_s = $("#je_editor_hidden").text()
+      
+      var tmp_str = ""
+      for(var i = 0; i < d_s.length; i++){
+        tmp_str += d_s.charAt(i)
+        if(special.includes(d_s.charAt(i))){
+          arrs.push({lang: current_lang(), text: tmp_str})
+          tmp_str = ""
+        }
+      }
+      arrs.forEach(function(arr, index, object) {
+        var obj = set_lang_text(arr)
+        arr.lang = obj.lang
+        special.forEach(function(symbol) {
+          arr.text = arr.text.replaceAll(symbol, "")
+        })
+        // for(var i=0; i<special.length; i++)
+        //   arr.text = arr.text.replaceAll(special[i], "")
+        //["❥", "❤", "♛", "♚", "♘", "♣"]
+        // arr.text = arr.text.replaceAll("♣", "")
+
+        var tmp_text = arr.text
+        var check_null = tmp_text.replaceAll(" ", "")
+
+        if(check_null.length < 1)
+          object.splice(index, 1);
+      })
+
+
+      renderHTML(arrs)
+      console.log(arrs)
+      return arrs
+    }
+
+    function first(arr) {
+      var first
+      arr.every(function(element) {first = element; return false;})
+      return first
+    }
+    function current_lang() {
+      return first(lang)
+    }
+    function set_lang_text(obj){
+      var result = {lang: "", text: ""}
+      for(var i = 0; i < lang_close_symbol.length; i++)
+        if(obj.text.indexOf(lang_close_symbol[i]) != -1){
+          result.lang = lang_close_text[i]
+          //["①", "②", "③", "④", "⑤", "⑥"]
+          result.text = obj.text
+          break
+        }
+      if(result.lang == ""){
+        result.lang = lang_default
+        result.text = obj.text
+      }
+      return result
+    }
+    function renderHTML(arrs){
+      $("#renderHTML").html("")
+      var html = ""
+      var lang_box_text = ["日本語", "English", "Ignore"]
+      
+      arrs.forEach(function(arr) {
+        var type_lang = lang_close_text.indexOf(arr.lang)
+        html += '<div class="lang-item lang-item-' + arr.lang + '">'
+        html += '<p><span  class="lang-tag-box">' + lang_box_text[type_lang] + "</span></p>"
+        html += '<p>' + arr.text + '</p>'
+        html += "</div>"
+      })
+      $("#renderHTML").html(html)
+    }
  </script>
 
  <script>
@@ -86,6 +187,8 @@
     var target = this;
     return target.split(search).join(replacement);
   }
+
+  // Array.prototype.first.call
 
   function getIndexOfMin(d_s, jp, en, no){
     var data = { indexof_start: -1, indexof_end: -1, el: ""}
@@ -111,43 +214,17 @@
     data.indexof_end = d_s.indexOf("</" + data.el + ">")
     return data
   }
+
  </script>
 </body>
 </html>
 
-
-
-
-<!--
-
-<p>
-  Newton&#39;s&nbsp;Principia&nbsp;for
-  <lang_jp>
-      mulated the&nbsp;laws of motion&nbsp;and&nbsp;u
-      <no_lang>niversal gravita</no_lang>
-      tion&nbsp;that dominated scientists&#39; view of the physical universe for the next three centuries. By deriving&nbsp;Kepler&#39;s laws of planetary motion&nbsp;from his mathematical description of&nbsp;gravity, and usi
-  </lang_jp>
-  <lang_en>
-      ng the same principles t
-      <lang_jp>o account for the&nbsp;trajectories&nbsp;of&nbsp;c</lang_jp>
-      omets, the&nbsp;tides, the&nbsp;precession of the equinoxes, and other phenomena, Newton removed the last doubts about the validity of the&nbsp;heliocentric&nbsp;model of the&nbsp;Solar System&nbsp;and demonstrated that
-      <no_lang> the&nbsp;motion of obje</no_lang>
-      cts&nbsp;on&nbsp;Earth&nbsp;and of&nbsp;celestial&nbsp;bodies could be accounted for by the same principles. Newton&#39;s theoretical prediction that the Earth is s
-  </lang_en>
-  hape
-  <no_lang>d as an&nbsp;oblate spheroid</no_lang>
-  &nbsp;was later vindicated by the geodetic measurements of&nbsp;Maupertuis,&nbsp;La Condamine, and others, thus co
-  <lang_jp>
-      nvincing most&nbsp;Continent
-      <lang_en>al European&nbsp;s</lang_en>
-      cien
-      <no_lang>tists of</no_lang>
-      the superi
-      <no_lang>orit</no_lang>
-      y of&nbsp;N
-      <lang_jp>ewtonian</lang_jp>
-      mechanics&nbsp;over the earlier system of&nbsp;Descartes.
-  </lang_jp>
-</p>
-
--->
+<!-- [
+    {lang: "jp", text: "音声は日本語＋英語が混ざったものがほとんどになりますので、"},
+    {lang: "en", text: "good morning"},
+    {lang: "jp", text: "プログラムを使い、"},
+    {lang: "en", text: "how are you today"},
+    {lang: "jp", text: "裏で音声を判別する作業が必要に "},
+    {lang: "en", text: "good luck mate "},
+    {lang: "jp", text: " なってくるかと思います。"},
+  ] -->

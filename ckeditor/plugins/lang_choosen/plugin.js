@@ -75,13 +75,13 @@ CKEDITOR.plugins.add('lang_choosen',
 				// editor.focus();
 				// editor.fire( 'saveSnapshot' );
 				// editor.insertHtml(value);
-        // editor.fire( 'saveSnapshot' );
+		        // editor.fire( 'saveSnapshot' );
 
-        var text = editor.getSelection().getSelectedText(); // Get Text
-        var newElement = new CKEDITOR.dom.element(value);
-        console.log(CKEDITOR.dom.element)
-        newElement.setText(text);
-        editor.insertElement(newElement);
+		        var text = editor.getSelection().getSelectedText(); // Get Text
+		        var newElement = new CKEDITOR.dom.element(value);
+		        
+		        newElement.setText(text);
+		        editor.insertElement(newElement);
 			},
 
 		});
